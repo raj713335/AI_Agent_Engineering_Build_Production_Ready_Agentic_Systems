@@ -6,7 +6,7 @@ from langchain.agents import create_agent
 
 from langgraph.checkpoint.memory import InMemorySaver
 
-from tool import get_weather
+from tool import get_weather, calculate, search_docs, Context, get_user_id
 
 load_dotenv()
 
@@ -21,29 +21,45 @@ def main():
 
     agent = create_agent(
         model=model,
-        tools=[get_weather],
+        tools=[get_weather, calculate, search_docs, get_user_id],
         system_prompt="You are a helpful assistant. Use tools when needed",
         checkpointer=checkpointer
     )
 
+    # config = {"configurable": {"thread_id": "demo-thread-1"}}
+    #
+    # result = agent.invoke({"messages": [
+    #     {"role": "user", "content": "what is the weather in Delhi? and what's (3+5)*12?"}
+    # ]},
+    #     config=config,
+    # )
+
+    # print("\n --- FULL MESSAGE TRACE ---")
+    # for m in result["messages"]:
+    #     print(type(m), getattr(m, "content", None))
+
+    # print("\n ---- FINAL ANSWER 1----")
+    # print(result["messages"][-1].content)
+    #
+    # result = agent.invoke({"messages": [
+    #     {"role": "user", "content": "what city did I say I want to get the weather of ?"}
+    # ]},
+    #     config=config,
+    # )
+    #
+    # print("\n ---- FINAL ANSWER 2----")
+    # print(result["messages"][-1].content)
+
     config = {"configurable": {"thread_id": "demo-thread-1"}}
 
     result = agent.invoke({"messages": [
-                               {"role": "user", "content": "what is the weather in Delhi? and what's (3+5)*12?"}
-                           ]},
-                            config=config,
-                          )
+        {"role": "user", "content": "what is my user id?"}
+    ]},
+        context=Context(user_id="raj713335"),
+        config=config,
+    )
 
-    print("\n ---- FINAL ANSWER 1----")
-    print(result["messages"][-1].content)
-
-    result = agent.invoke({"messages": [
-                               {"role": "user", "content": "what city did I say I want to get the weather of ?"}
-                           ]},
-                            config=config,
-                          )
-
-    print("\n ---- FINAL ANSWER 2----")
+    print("\n ---- FINAL ANSWER ----")
     print(result["messages"][-1].content)
 
 

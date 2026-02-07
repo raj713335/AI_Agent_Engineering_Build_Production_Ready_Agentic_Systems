@@ -1,4 +1,10 @@
-from langchain.tools import tool
+from dataclasses import dataclass
+from langchain.tools import tool, ToolRuntime
+from knowledge_base import search_kb
+
+@dataclass
+class Context:
+    user_id: str
 
 
 @tool
@@ -14,3 +20,14 @@ def calculate(expression: str) -> str:
     """Evaluate a simple math expression like '12 * (3 + 5)' """
 
     return str(eval(expression))
+
+
+@tool
+def search_docs(query: str) -> str:
+    """Search internal support documentation for the given query."""
+    return search_kb(query)
+
+@tool
+def get_user_id(runtime: ToolRuntime[Context]) -> str:
+    """Return the current user_id from runtime context."""
+    return runtime.context.user_id
