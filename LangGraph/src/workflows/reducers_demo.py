@@ -15,6 +15,7 @@ def step_a(state: State):
 def step_b(state: State):
     return {"log":  [f"step_b finishing topic={state['topic']}"]}
 
+
 def step_c(state: State):
     return {"log":  [f"step_c finishing topic at last={state['topic']}"]}
 

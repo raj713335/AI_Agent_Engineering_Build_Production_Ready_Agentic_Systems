@@ -4,3 +4,4 @@ python-dotenv
 langgraph
 langchain-mcp-adapters
 fastmcp
+IPython
