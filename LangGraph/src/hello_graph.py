@@ -1,5 +1,6 @@
 from langgraph.graph import StateGraph, MessagesState, START, END
 
+
 def hello_node(state: MessagesState):
     # Return a state update: add one assistant message
     return {"messages": [{"role": "ai", "content": "Hello World"}]}
@@ -15,4 +16,4 @@ graph = builder.compile()
 result = graph.invoke({"messages": [{"role": "user", "content": "Hi"}]})
 print(result["messages"][-1].content)
 
-#START -> func hello_node() -> END
+# START -> func hello_node() -> END
