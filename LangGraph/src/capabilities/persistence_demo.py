@@ -9,8 +9,15 @@ from langchain.messages import SystemMessage, ToolMessage, HumanMessage
 
 from langgraph.graph import StateGraph, START, END
 from langgraph.types import interrupt, Command
+from langgraph.func import entrypoint
+from langgraph.store.base import BaseStore
 
 from tools_setup import model_with_tools, tools_by_name
+
+@entrypoint(store=...) # pass a store instance here
+def workflow(user_input: dict, *, store: BaseStore):
+    # store.get(...) store.put(...) style operations happens here
+    return {"ok": True}
 
 
 class AgentState(TypedDict):
