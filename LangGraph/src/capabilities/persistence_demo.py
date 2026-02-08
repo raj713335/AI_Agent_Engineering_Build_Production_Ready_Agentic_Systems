@@ -14,7 +14,8 @@ from langgraph.store.base import BaseStore
 
 from tools_setup import model_with_tools, tools_by_name
 
-@entrypoint(store=...) # pass a store instance here
+
+@entrypoint(store=...)  # pass a store instance here
 def workflow(user_input: dict, *, store: BaseStore):
     # store.get(...) store.put(...) style operations happens here
     return {"ok": True}
@@ -63,6 +64,7 @@ def approve_node(state: AgentState) -> Command[Literal["tool_node", "__end__"]]:
     decision = interrupt({"question": "Approve tool execution?", "tool_calls": state["messages"][-1].tool_calls})
     return Command(goto="tool_node" if decision else END)
 
+
 builder = StateGraph(AgentState)
 
 builder.add_node("llm_call", llm_call)
@@ -71,14 +73,13 @@ builder.add_node("tool_node", tool_node)
 
 checkpointer = InMemorySaver()
 
-
 builder.add_edge(START, "llm_call")
 builder.add_conditional_edges("llm_call", should_continue, ["approve", END])
 builder.add_edge("tool_node", "llm_call")
 
 agent = builder.compile(checkpointer=checkpointer)
 
-config = {"configurable" : {"thread_id": "thread-1"}}
+config = {"configurable": {"thread_id": "thread-1"}}
 
 result = agent.invoke({"messages": [HumanMessage(content="Add 3 and 4.")], "llm_calls": 0}, config=config)
 
@@ -97,9 +98,6 @@ print("Interrupt payload:", result["__interrupt__"][0].value)
 resume = agent.invoke(Command(resume=True), config=config)
 print("Done. Last message:", resume["messages"][-1])
 
-
-
-
 # print("Final:", result["messages"][-1])
 #
 # snap = agent.get_state(config)
@@ -110,7 +108,7 @@ print("Done. Last message:", resume["messages"][-1])
 # print("Number of checkpoints:", len(history))
 # print("Most recent checkpoint id:", history[0].config["configurable"]["checkpoint_id"])
 
-config_reject = {"configurable" : {"thread_id": "thread-1-reject"}}
+config_reject = {"configurable": {"thread_id": "thread-1-reject"}}
 
 result = agent.invoke({"messages": [HumanMessage(content="Multiply 30 and 41.")], "llm_calls": 0}, config=config_reject)
 
@@ -122,7 +120,7 @@ print("Done. Last message:", resume["messages"][-1])
 history = list(agent.get_state_history(config_reject))
 picked = history[1]
 
-new_config = agent.update_state(picked.config, values={"messages": [HumanMessage(content="Multiply 30 and 41.")], "llm_calls": 0})
+new_config = agent.update_state(picked.config,
+                                values={"messages": [HumanMessage(content="Multiply 30 and 41.")], "llm_calls": 0})
 forked = agent.invoke(None, new_config)
 print("Forked:", forked)
-
