@@ -31,3 +31,8 @@ def search_docs(query: str) -> str:
 def get_user_id(runtime: ToolRuntime[Context]) -> str:
     """Return the current user_id from runtime context."""
     return runtime.context.user_id
+
+@tool
+def send_email(to: str, subject: str, body: str) -> str:
+    """Send a email. (Demo tool: does not really send it.)"""
+    return f"[SIMULATED] Email queued to {to} with subject '{subject}'"

@@ -2,21 +2,23 @@ import os
 from dotenv import load_dotenv
 
 from pydantic import BaseModel, Field
-from typing import Callable
+from typing import Callable, Any
 
 from langchain.chat_models import init_chat_model
 from langchain.agents import create_agent
 from langchain.agents.middleware import SummarizationMiddleware
 from langchain.agents.middleware import AgentState, before_model, after_model, wrap_model_call, ModelRequest, \
-    ModelResponse, dynamic_prompt
-from langgraph.runtime import Runtime
+    ModelResponse, dynamic_prompt, PIIMiddleware, AgentMiddleware, hook_config, HumanInTheLoopMiddleware
 
+from langgraph.runtime import Runtime
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.memory import InMemoryStore
+from langgraph.types import Command
+
 from dataclasses import dataclass
 from langchain.tools import tool, ToolRuntime
 
-from tool import get_weather, calculate, search_docs, Context, get_user_id
+from tool import get_weather, calculate, search_docs, Context, get_user_id, send_email
 
 load_dotenv()
 
@@ -27,6 +29,25 @@ class Context:
 
 
 store = InMemoryStore()
+
+
+class ContentFilterMiddleware(AgentMiddleware):
+    def __init__(self, banned_keywords: list[str]):
+        super().__init__()
+        self.banned = [b.lower() for b in banned_keywords]
+
+    @hook_config(can_jump_to=["end"])
+    def before_agent(self, state: AgentState, runtime: Runtime) -> dict[str, Any] | None:
+        if not state["messages"]:
+            return None
+        content = getattr(state["messages"][0], "content", "").lower()
+        if any(b in content for b in self.banned):
+            return {
+                "messages": [{"role": "assistant", "content": "I can't help you with that request. Please rephrase."}],
+                "jump_to": "end"
+            }
+
+        return None
 
 
 @tool
@@ -96,9 +117,9 @@ def main():
 
     agent = create_agent(
         model=model,
-        tools=[get_weather, calculate, search_docs, get_user_id, save_preference, read_preference],
+        tools=[get_weather, calculate, search_docs, get_user_id, save_preference, read_preference, send_email],
         system_prompt="You are a helpful support assistant. Use tools when needed",
-        #checkpointer=checkpointer,
+        checkpointer=checkpointer,
         #response_format=SupportActionPlan,
         store=store,
         # middleware=[
@@ -108,11 +129,22 @@ def main():
         #         keep=("messages", 20)
         #     )
         #]
+        # middleware=[
+        #     log_after_model,
+        #     log_before_model,
+        #     system_prompt_from_context,
+        #     retry_model
+        #
         middleware=[
-            log_after_model,
-            log_before_model,
-            system_prompt_from_context,
-            retry_model
+            PIIMiddleware("email", strategy="redact", apply_to_input=True),
+            PIIMiddleware("credit_card", strategy="mask", apply_to_input=True),
+            ContentFilterMiddleware(["hotel"]),
+            HumanInTheLoopMiddleware(
+                interrupt_on={
+                    "send_email": True,
+                    "search_docs": False
+                }
+            )
         ]
     )
 
@@ -173,18 +205,36 @@ def main():
 
     #config = {"configurable": {"thread_id": "demo-thread-1"}}
 
-    agent.invoke({"messages": [
-        {"role": "user", "content": "My Style is: super concise."}
-    ]},
-        context=Context(user_id="raj713335"),
-    )
+    # agent.invoke({"messages": [
+    #     {"role": "user", "content": "My Style is: super concise."}
+    # ]},
+    #     context=Context(user_id="raj713335"),
+    # )
+
+    # result = agent.invoke({"messages": [
+    #     {"role": "user",
+    #      "content": "can you calculate 7*5*5, can you find me the best in my area with 500 budget"}
+    # ]},
+    #     context=Context(user_id="raj713335"),
+    # )
+    #
+    # print("\n ---- FINAL ANSWER ----")
+    # print(result["messages"][-1].content)
+
+    config = {"configurable": {"thread_id": "hitl-demo"}}
 
     result = agent.invoke({"messages": [
-        {"role": "user",
-         "content": "can you calculate 7*5*5, can you find me the best hotel in my area with 500 budget"}
+        {"role": "user", "content": "Email the team: subject 'Update, body 'All Good Folks!'"}
     ]},
         context=Context(user_id="raj713335"),
+        config=config
     )
+
+    print("INTERRUPT:", result.get("__interrupt__"))
+
+    result = agent.invoke(Command(resume={"decisions": [{"type": "approve"}]}),
+                          config=config
+                          )
 
     print("\n ---- FINAL ANSWER ----")
     print(result["messages"][-1].content)
