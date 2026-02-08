@@ -120,7 +120,7 @@ def main():
         tools=[get_weather, calculate, search_docs, get_user_id, save_preference, read_preference, send_email],
         system_prompt="You are a helpful support assistant. Use tools when needed",
         checkpointer=checkpointer,
-        #response_format=SupportActionPlan,
+        # response_format=SupportActionPlan,
         store=store,
         # middleware=[
         #     SummarizationMiddleware(
@@ -128,7 +128,7 @@ def main():
         #         trigger=("tokens", 4000),
         #         keep=("messages", 20)
         #     )
-        #]
+        # ]
         # middleware=[
         #     log_after_model,
         #     log_before_model,
@@ -185,7 +185,7 @@ def main():
     # print(result["structured_response"])
     # print(result["messages"][-1].content)
 
-    #config = {"configurable": {"thread_id": "demo-thread-1"}}
+    # config = {"configurable": {"thread_id": "demo-thread-1"}}
 
     # for mode, chunk in agent.stream(
     #         {"messages": [{"role": "user", "content": "Search docs for API limits and summarize."}]},
@@ -203,7 +203,7 @@ def main():
     #
     # print()
 
-    #config = {"configurable": {"thread_id": "demo-thread-1"}}
+    # config = {"configurable": {"thread_id": "demo-thread-1"}}
 
     # agent.invoke({"messages": [
     #     {"role": "user", "content": "My Style is: super concise."}

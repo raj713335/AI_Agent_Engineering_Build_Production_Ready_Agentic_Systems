@@ -6,19 +6,9 @@ from typing import Callable, Any
 
 from langchain.chat_models import init_chat_model
 from langchain.agents import create_agent
-from langchain.agents.middleware import SummarizationMiddleware
-from langchain.agents.middleware import AgentState, before_model, after_model, wrap_model_call, ModelRequest, \
-    ModelResponse, dynamic_prompt, PIIMiddleware, AgentMiddleware, hook_config, HumanInTheLoopMiddleware
 
-from langgraph.runtime import Runtime
-from langgraph.checkpoint.memory import InMemorySaver
-from langgraph.store.memory import InMemoryStore
-from langgraph.types import Command
+from langchain.tools import tool
 
-from dataclasses import dataclass
-from langchain.tools import tool, ToolRuntime
-
-from tool import get_weather, calculate, search_docs, Context, get_user_id, send_email
 
 load_dotenv()
 
@@ -36,7 +26,7 @@ writer_agent = create_agent(
     system_prompt="You are a writing specialist..."
 )
 
-# Registry of available sub-agents
+# Registry of available subagents
 SUBAGENTS = {
     "researcher": researcher_agent,
     "writer": writer_agent
@@ -84,7 +74,3 @@ print(result)
 
 print("\n ---- FINAL ANSWER ----")
 print(result["messages"][-1].content)
-
-
-
-

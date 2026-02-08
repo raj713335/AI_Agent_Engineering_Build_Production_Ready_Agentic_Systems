@@ -74,7 +74,6 @@ async def run_stateful():
     )
 
     async with client.session("math") as session:
-
         tools = await load_mcp_tools(session)
 
         model = init_chat_model("openai:gpt-4.1-mini")
