@@ -2,10 +2,14 @@ import os
 from dotenv import load_dotenv
 
 from pydantic import BaseModel, Field
+from typing import Callable
 
 from langchain.chat_models import init_chat_model
 from langchain.agents import create_agent
 from langchain.agents.middleware import SummarizationMiddleware
+from langchain.agents.middleware import AgentState, before_model, after_model, wrap_model_call, ModelRequest, \
+    ModelResponse, dynamic_prompt
+from langgraph.runtime import Runtime
 
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.store.memory import InMemoryStore
@@ -48,6 +52,40 @@ class SupportActionPlan(BaseModel):
     needs_human: bool = Field(description="True if a human should review before action")
 
 
+@before_model
+def log_before_model(state: AgentState, runtime: Runtime):
+    last = state["messages"][-1]
+    print(f"[before_model] last message: {getattr(last, 'content', last)}")
+    return None
+
+
+@after_model
+def log_after_model(state: AgentState, runtime: Runtime):
+    last = state["messages"][-1]
+    print(f"[after_model] model output: {getattr(last, 'content', last)}")
+    return None
+
+
+@wrap_model_call
+def retry_model(request: ModelRequest, handler: Callable[[ModelRequest], ModelResponse]) -> ModelResponse:
+    for attempt in range(3):
+        try:
+            return handler(request)
+        except Exception as ex:
+            if attempt == 2:
+                print(f"[wrap_model_call] retry {attempt + 1}/3 after error: {ex}")
+                raise
+            print(f"[wrap_model_call] retry {attempt + 1}/3 after error: {ex}")
+
+
+@dynamic_prompt
+def system_prompt_from_context(request: ModelRequest) -> str:
+    # Example: be extra concise for long conversation
+    if len(request.messages) > 10:
+        return "You are a helpful assistant. Be extremely concise."
+    return "You are a helpful assistant."
+
+
 def main():
     # Pick any model you have access to
     # These uses openAI with langchain-openai package
@@ -70,6 +108,12 @@ def main():
         #         keep=("messages", 20)
         #     )
         #]
+        middleware=[
+            log_after_model,
+            log_before_model,
+            system_prompt_from_context,
+            retry_model
+        ]
     )
 
     # config = {"configurable": {"thread_id": "demo-thread-1"}}
@@ -136,7 +180,8 @@ def main():
     )
 
     result = agent.invoke({"messages": [
-        {"role": "user", "content": "What style do i prefer?"}
+        {"role": "user",
+         "content": "can you calculate 7*5*5, can you find me the best hotel in my area with 500 budget"}
     ]},
         context=Context(user_id="raj713335"),
     )
