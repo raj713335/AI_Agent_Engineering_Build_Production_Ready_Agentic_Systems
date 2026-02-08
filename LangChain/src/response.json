@@ -1,0 +1,9 @@
+{
+  "summary":"The user is unable to reset their password and needs guidance on how to proceed.",
+  "steps":[
+    "Ensure you are using the correct email or username associated with your account for the password reset.",
+    "Check your email inbox, including the spam/junk folder, for a password reset email and follow the instructions provided.",
+    "If you do not receive a reset email, try initiating the password reset process again, ensuring there are no typos.",
+    "If the problem persists, contact support directly with your account details for assistance."],
+  "needs_human":false
+}
