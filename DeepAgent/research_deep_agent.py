@@ -49,16 +49,11 @@ agent = create_deep_agent(
     system_prompt=research_instructions
 )
 
+results = agent.invoke({
+    "messages": [
+        {"role": "user",
+         "content": "What is a blackhole ?, call the internet_search tool to get the latest information "}
+    ]
+})
 
-for i in range(1, 25):
-
-    print(f"Iteration Number {i}")
-    results = agent.invoke({
-        "messages": [
-            {"role": "user",
-             "content": "What is a blackhole ?, call the internet_search tool to get the latest information "}
-        ]
-    })
-
-    print(results["messages"][-1].content)
-    print(" ")
+print(results["messages"][-1].content)
