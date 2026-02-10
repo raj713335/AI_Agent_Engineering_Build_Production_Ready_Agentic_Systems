@@ -68,4 +68,3 @@ if result.get("__interrupt__"):
     result = agent.invoke(Command(resume={"decisions": decisions}), config=config)
 
 print(result["messages"][-1].content)
-
