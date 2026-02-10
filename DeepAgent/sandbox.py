@@ -11,7 +11,7 @@ load_dotenv()
 
 model = init_chat_model("openai:gpt-4.1-mini")
 
-app = modal.App.lookup("your-app")
+app = modal.App.lookup("example-get-started")
 modal_sandbox = modal.Sandbox.create(app=app)
 backend = ModalSandbox(sandbox=modal_sandbox)
 
