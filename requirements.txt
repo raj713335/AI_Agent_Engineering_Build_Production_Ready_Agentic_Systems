@@ -10,3 +10,4 @@ tavily-python
 pydantic~=2.12.5
 typing_extensions~=4.15.0
 langcahin-modal
+langfuse
