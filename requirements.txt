@@ -13,3 +13,4 @@ langcahin-modal
 langfuse
 fastapi
 uvicorn
+sqlalchemy

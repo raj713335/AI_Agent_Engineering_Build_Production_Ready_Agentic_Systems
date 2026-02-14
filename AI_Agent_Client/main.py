@@ -11,6 +11,8 @@ import uvicorn
 
 from utils.settings import initialize_settings
 from routers import general_router
+from database.database_connection import engine
+from models.chat_history import Base
 
 
 logger = logging.getLogger(__name__)
@@ -22,6 +24,9 @@ load_dotenv()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting application lifespan...")
+
+    # async with engine.begin() as conn:
+    #     await conn.run_async(Base.metadata.create_all)
 
     yield
     logger.info("Application lifespan ended.")
