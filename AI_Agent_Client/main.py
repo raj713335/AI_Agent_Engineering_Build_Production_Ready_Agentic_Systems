@@ -10,9 +10,9 @@ from dotenv import load_dotenv
 import uvicorn
 
 from utils.settings import initialize_settings
-from routers import general_router
-from database.database_connection import engine
-from models.chat_history import Base
+from routers import general_router, agent_router
+# from database.database_connection import engine
+# from models.chat_history import Base
 
 
 logger = logging.getLogger(__name__)
@@ -48,6 +48,7 @@ app.add_middleware(
 
 
 app.include_router(general_router.router)
+app.include_router(agent_router.router)
 
 
 # Initialize settings
