@@ -1,5 +1,3 @@
-# 🤖 AI Agent Engineering: Build Production Ready Agentic Systems
-
 <h1 align="center">
   <a href="https://github.com/raj713335/AI_Agent_Engineering_Build_Production_Ready_Agentic_Systems">
     AI Agent Engineering: Build Production Ready Agentic Systems
@@ -210,105 +208,14 @@ http://127.0.0.1:8000/api/docs
 
 ---
 
-## 🔍 Production Concepts Covered
 
-### 🧩 Agentic Design Patterns
-
-* ReAct Pattern
-* Planner-Executor Pattern
-* Tool-Calling Agents
-* Multi-Agent Coordination
-
-### 🛡️ Guardrails & Security
-
-* Input validation
-* Output filtering
-* Authentication
-* Rate limiting
-* Role-based access
-
-### 📊 Observability
-
-* Tracing
-* Tool-call logging
-* Latency tracking
-* Agent evaluation
-
-### ☁️ Deployment
-
-* Dockerization
-* Environment management
-* Cloud deployment strategy
-* API scaling
-
----
-
-## 🧪 Included in the Course
-
-* 🎭 1 Interactive Role Play
-* 📝 Practice Test
-* 📂 Assignments
-* 📜 Certificate of Completion
-* 📱 Access on Mobile & TV
-* ♾️ Lifetime Access
-
----
-
-## 🎯 Who This Is For
-
-* Backend Developers
-* Full-Stack Engineers
-* AI/ML Practitioners
-* Technical Architects
-* Developers transitioning from chatbot apps to autonomous AI systems
-* Engineers preparing for advanced AI roles
-
----
-
-## 🌍 Real-World Applications
-
-* Enterprise Knowledge Agents
-* Autonomous Task Agents
-* Multi-Agent Collaboration Systems
-* Tool-Integrated AI Workflows
-* Secure Production AI APIs
-
----
-
-## 🏆 Why This Course Is Different
-
-Unlike beginner AI courses:
-
-❌ Not just prompt engineering
-❌ Not just chatbot demos
-❌ Not theory-only
-
-✅ Real architecture
-✅ Production engineering
-✅ Observability & monitoring
-✅ Secure deployment
-✅ Enterprise-grade patterns
-
----
 
 ## 🔗 Course Link
 
 👉 GitHub Repository:
 [https://github.com/raj713335/AI_Agent_Engineering_Build_Production_Ready_Agentic_Systems](https://github.com/raj713335/AI_Agent_Engineering_Build_Production_Ready_Agentic_Systems)
 
----
 
-## 📢 Instructor
-
-Senior Engineer passionate about:
-
-* AI/ML Systems
-* Backend Engineering
-* Blockchain
-* Production-grade Architectures
-* Generative AI & Agentic Systems
-
----
 
 ## ⭐ Support the Project
 
