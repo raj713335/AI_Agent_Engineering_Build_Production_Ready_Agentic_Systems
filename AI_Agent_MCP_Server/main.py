@@ -7,13 +7,14 @@ from contextlib import asynccontextmanager, AsyncExitStack
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from mcp.server.fastmcp import FastMCP
+from langchain_mcp_adapters.tools import to_fastmcp
 
 from dotenv import load_dotenv
 import uvicorn
 
 from utils.settings import initialize_settings
-
-
+from AI_Agent_MCP_Server.tookit.tools import tools
+from AI_Agent_MCP_Server.routers import general_router
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -24,7 +25,7 @@ load_dotenv()
 mcp_server = FastMCP(
     name=os.getenv("MCP_APP_NAME", "AI_AGENT_MCP"),
     instructions="A MCP Server exposing tools for Researcher Agent",
-    tools=[],
+    tools=[to_fastmcp(tool) for tool in tools],
     streamable_http_path="/mcp",
     json_response=True,
     stateless_http=False,
@@ -61,8 +62,9 @@ app.add_middleware(
     allow_headers=[""]
 )
 
-
+app.include_router(general_router.router)
 app.mount("/api", http_app, name="mcp-http") # adding mcp mount to default fastapi server
+
 
 
 
