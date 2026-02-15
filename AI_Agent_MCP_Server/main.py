@@ -13,15 +13,15 @@ from dotenv import load_dotenv
 import uvicorn
 
 from utils.settings import initialize_settings
+
 from AI_Agent_MCP_Server.tookit.tools import tools
-from AI_Agent_MCP_Server.routers import general_router
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 load_dotenv()
 
-# Create a MCP Server
+# Create an MCP Server
 mcp_server = FastMCP(
     name=os.getenv("MCP_APP_NAME", "AI_AGENT_MCP"),
     instructions="A MCP Server exposing tools for Researcher Agent",
@@ -46,7 +46,6 @@ async def lifespan(app: FastAPI):
         yield
 
 
-
 app = FastAPI(
     title="AI Agent MCP Server",
     description="MCP Server for AI Agent Client",
@@ -62,11 +61,7 @@ app.add_middleware(
     allow_headers=[""]
 )
 
-app.include_router(general_router.router)
-app.mount("/api", http_app, name="mcp-http") # adding mcp mount to default fastapi server
-
-
-
+app.mount("/api", http_app, name="mcp-http")  # adding mcp mount to default fastapi server
 
 # Initialize settings
 logger.info("Initialize application settings")
