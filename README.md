@@ -10,6 +10,10 @@
   🚀 Production-Grade Agentic Systems with LangChain, MCP, RAG & FastAPI
 </p>
 
+<p align="center">
+  <img src="Architecture_Diagram/ai-agents.png" />
+</p> 
+
 ---
 
 ## Problem Statement
