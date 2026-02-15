@@ -36,6 +36,62 @@ This project repository provides **complete resource material, architecture exam
 
 ---
 
+## Capstone Project 
+
+```mermaid
+graph TD
+    %% Styles
+    classDef server fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef external fill:#fff3e0,stroke:#e65100,stroke-width:2px;
+    classDef observ fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,stroke-dasharray: 5 5;
+
+    %% External User
+    User([User / Client Request])
+
+    %% Server A: The Agent Host
+    subgraph Server_A ["FastAPI Server A (Agent Host)"]
+        direction TB
+        AgentEndpoint[/"FastAPI Endpoint"/]
+        ResearcherAgent[("Researcher Agent")]
+        
+        AgentEndpoint --> ResearcherAgent
+    end
+
+    %% Server B: The MCP Host
+    subgraph Server_B ["FastAPI Server B (MCP Host)"]
+        direction TB
+        MCPEndpoint[/"MCP SSE Endpoint"/]
+        ArxivTool[("arXiv MCP Server")]
+        
+        MCPEndpoint --> ArxivTool
+    end
+
+    %% External Services
+    LLM{{"External LLM Provider"}}
+    ArxivWeb(("arXiv.org"))
+    
+    %% Observability
+    Langfuse[("Langfuse Observability")]
+
+    %% Connections
+    User -- "1. Trigger Task" --> AgentEndpoint
+    
+    ResearcherAgent -- "2. Reasoning & Generation" <--> LLM
+    
+    ResearcherAgent -- "3. MCP Protocol (SSE)" --> MCPEndpoint
+    
+    ArxivTool -- "4. Scrape/API Request" --> ArxivWeb
+    
+    %% Logging Connections
+    ResearcherAgent -.->|"Log Traces/Spans"| Langfuse
+    ArxivTool -.->|"Log Tool Inputs/Outputs"| Langfuse
+
+    %% Class Assignments
+    class Server_A,Server_B server;
+    class LLM,ArxivWeb external;
+    class Langfuse observ;
+```
+
 ## 🎓 About the Course
 
 This repository supports the Udemy course:

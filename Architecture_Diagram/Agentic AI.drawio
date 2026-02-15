@@ -1,4 +1,4 @@
-<mxfile host="Electron" modified="2026-02-10T15:39:41.461Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.2 Chrome/114.0.5735.289 Electron/25.9.4 Safari/537.36" etag="_x7mI8kvpQZ14QSyQhzC" version="22.1.2" type="device" pages="9">
+<mxfile host="Electron" modified="2026-02-15T06:15:10.597Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.2 Chrome/114.0.5735.289 Electron/25.9.4 Safari/537.36" etag="0TFaKFzJq9lcawU8GjAF" version="22.1.2" type="device" pages="10">
   <diagram name="Degree of Autonomy" id="HPExsfU8HgmWqsyOpqb9">
     <mxGraphModel dx="2318" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="1600" math="0" shadow="0">
       <root>
@@ -1095,6 +1095,88 @@
         <mxCell id="8PXt0n5SjIjknOrDU50--30" value="" style="curved=1;startArrow=none;endArrow=block;exitX=0.9998007015306123;exitY=0.5030790216782514;entryX=-0.002403846153846154;entryY=0.5014539824591743;rounded=0;" edge="1" parent="1" source="8PXt0n5SjIjknOrDU50--4" target="8PXt0n5SjIjknOrDU50--5">
           <mxGeometry relative="1" as="geometry">
             <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="fr5xcnOwQGdRC3MDFoeC" name="Capstone Project">
+    <mxGraphModel dx="1418" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="EwN7EzoRoRM-2XTAXm2j-1" value="FastAPI Server B (MCP Host)" style="whiteSpace=wrap;strokeWidth=2;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="244" y="400" width="335" height="226" as="geometry" />
+        </mxCell>
+        <mxCell id="EwN7EzoRoRM-2XTAXm2j-2" value="MCP SSE Endpoint" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;strokeWidth=2;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="324" y="425" width="166" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="EwN7EzoRoRM-2XTAXm2j-3" value="arXiv MCP Server" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="339" y="528" width="136" height="73" as="geometry" />
+        </mxCell>
+        <mxCell id="EwN7EzoRoRM-2XTAXm2j-4" value="               FastAPI Server A  (Agent Host)" style="whiteSpace=wrap;strokeWidth=2;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="75" y="123" width="608" height="208" as="geometry" />
+        </mxCell>
+        <mxCell id="EwN7EzoRoRM-2XTAXm2j-5" value="FastAPI Endpoint" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;strokeWidth=2;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="337" y="148" width="159" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="EwN7EzoRoRM-2XTAXm2j-6" value="Researcher Agent" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="346" y="232" width="140" height="74" as="geometry" />
+        </mxCell>
+        <mxCell id="EwN7EzoRoRM-2XTAXm2j-7" value="User / Client Request" style="rounded=1;whiteSpace=wrap;arcSize=50;strokeWidth=2;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="327" y="20" width="178" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="EwN7EzoRoRM-2XTAXm2j-8" value="External LLM Provider" style="shape=hexagon;perimeter=hexagonPerimeter2;fixedSize=1;strokeWidth=2;whiteSpace=wrap;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="20" y="425" width="189" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="EwN7EzoRoRM-2XTAXm2j-9" value="arXiv.org" style="ellipse;aspect=fixed;strokeWidth=2;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="284" y="695" width="78" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="EwN7EzoRoRM-2XTAXm2j-10" value="Langfuse Observability" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="540" y="695" width="178" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="EwN7EzoRoRM-2XTAXm2j-11" value="" style="curved=1;startArrow=none;endArrow=block;exitX=0.4990213742046236;exitY=1;entryX=0.5024599892752512;entryY=0;rounded=0;" edge="1" parent="1" source="EwN7EzoRoRM-2XTAXm2j-5" target="EwN7EzoRoRM-2XTAXm2j-6">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EwN7EzoRoRM-2XTAXm2j-12" value="" style="curved=1;startArrow=none;endArrow=block;exitX=0.5003764600638884;exitY=0.987734177533318;entryX=0.5004595027250403;entryY=-0.005712848820098459;rounded=0;" edge="1" parent="1" source="EwN7EzoRoRM-2XTAXm2j-2" target="EwN7EzoRoRM-2XTAXm2j-3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EwN7EzoRoRM-2XTAXm2j-13" value="1. Trigger Task" style="curved=1;startArrow=none;endArrow=block;exitX=0.5019348230254784;exitY=1;entryX=0.4990213742046236;entryY=0;rounded=0;" edge="1" parent="1" source="EwN7EzoRoRM-2XTAXm2j-7" target="EwN7EzoRoRM-2XTAXm2j-5">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EwN7EzoRoRM-2XTAXm2j-14" value="2. Reasoning &amp; Generation" style="curved=1;startArrow=block;endArrow=block;exitX=0.003520257132393973;exitY=0.690449012584322;entryX=0.5002480158730159;entryY=-0.012265822466681986;rounded=0;" edge="1" parent="1" source="EwN7EzoRoRM-2XTAXm2j-6" target="EwN7EzoRoRM-2XTAXm2j-8">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="115" y="331" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EwN7EzoRoRM-2XTAXm2j-15" value="3. MCP Protocol (SSE)" style="curved=1;startArrow=none;endArrow=block;exitX=0.46298447449429714;exitY=0.9943643518396326;entryX=0.5003764600638884;entryY=-0.012265822466681986;rounded=0;" edge="1" parent="1" source="EwN7EzoRoRM-2XTAXm2j-6" target="EwN7EzoRoRM-2XTAXm2j-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="407" y="331" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EwN7EzoRoRM-2XTAXm2j-16" value="4. Scrape/API Request" style="curved=1;startArrow=none;endArrow=block;exitX=0.13330265800511149;exitY=0.99600721385381;entryX=0.4998330336350661;entryY=0.0001249068822616186;rounded=0;" edge="1" parent="1" source="EwN7EzoRoRM-2XTAXm2j-3" target="EwN7EzoRoRM-2XTAXm2j-9">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="323" y="626" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EwN7EzoRoRM-2XTAXm2j-17" value="Log Traces/Spans" style="curved=1;dashed=1;dashPattern=2 3;startArrow=none;endArrow=block;exitX=1.0013997214181083;exitY=0.7340086149736564;entryX=0.6913445625104909;entryY=-0.0037368383163060895;rounded=0;" edge="1" parent="1" source="EwN7EzoRoRM-2XTAXm2j-6" target="EwN7EzoRoRM-2XTAXm2j-10">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="663" y="331" />
+              <mxPoint x="663" y="660" />
+            </Array>
           </mxGeometry>
         </mxCell>
       </root>
