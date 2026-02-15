@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api", tags=["General"])
 def perform_healthcheck() -> Any:
     """Returns a 200 when API is running."""
     logger.info("Healthcheck performed")
-    return {"message": "AI Agent Client is Running..."}
+    return {"message": "AI Agent MCP Server is Running..."}
 
 
 @router.get("/tools", status_code=status.HTTP_200_OK)
@@ -50,7 +50,7 @@ async def list_mcp_tools():
 async def swagger_ui_html() -> Any:
     """Swagger UI HTML"""
     return swagger_ui_html(
-        openapi=router.openapi_url,
+        open_api=router.openapi_url,
         title="MCP Server Docs",
         swagger_ui_parameters={"syntaxHighlight.theme": "nord"},
         swagger_css_url="/resources/swagger-ui.css"

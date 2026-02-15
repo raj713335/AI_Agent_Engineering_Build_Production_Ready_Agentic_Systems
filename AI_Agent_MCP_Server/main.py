@@ -15,7 +15,7 @@ import uvicorn
 from utils.settings import initialize_settings
 
 from AI_Agent_MCP_Server.tookit.tools import tools
-from AI_Agent_Client.routers import general_router
+from AI_Agent_MCP_Server.routers import general_router
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
