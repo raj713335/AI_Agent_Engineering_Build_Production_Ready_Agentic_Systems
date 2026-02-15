@@ -157,7 +157,7 @@ Build modern AI agents using:
 ## 🛠️ Tech Stack Covered
 
 | Layer             | Technologies                 |
-| ----------------- | ---------------------------- |
+|-------------------|------------------------------|
 | LLM Orchestration | LangChain, LangGraph         |
 | Agent Framework   | Deep Agents                  |
 | Context Protocol  | MCP (Model Context Protocol) |
@@ -290,4 +290,4 @@ Start building **real-world AI agents** that reason, plan, collaborate, and oper
 
 ---
 
-### Thank You 🙌
+### Thank You. 🙌
