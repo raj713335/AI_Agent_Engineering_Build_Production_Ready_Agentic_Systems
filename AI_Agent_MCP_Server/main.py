@@ -15,6 +15,7 @@ import uvicorn
 from utils.settings import initialize_settings
 
 from AI_Agent_MCP_Server.tookit.tools import tools
+from AI_Agent_Client.routers import general_router
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -61,6 +62,7 @@ app.add_middleware(
     allow_headers=[""]
 )
 
+app.include_router(general_router.router)
 app.mount("/api", http_app, name="mcp-http")  # adding mcp mount to default fastapi server
 
 # Initialize settings
