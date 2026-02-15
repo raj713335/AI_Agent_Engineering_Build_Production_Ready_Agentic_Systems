@@ -3,35 +3,29 @@ from typing import Any
 
 import logging
 
-from langchain.chat_models import init_chat_model
-from langchain.agents import create_agent
-
-from AI_Agent_Client.utils import prompt
 from AI_Agent_Client.schemas.AgentQueryRequest import AgentQueryRequest
-
-from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-load_dotenv()
-
 router = APIRouter(prefix="/api/agent", tags=["Agent API"])
 
-model = init_chat_model("openai:gpt-4.1-mini")
+_agent = None
 
-agent = create_agent(
-    model=model,
-    system_prompt=prompt.PROMPT
-)
+
+def configure_agent_router(agent):
+    global _agent
+    _agent = agent
 
 
 @router.post("/query")
-def agentic_query(request: AgentQueryRequest) -> Any:
-    """Returns a Agentic Query Response"""
+async def agentic_query(request: AgentQueryRequest) -> Any:
     logger.info("Received HTTP POST /api/agent/query request")
 
-    result = agent.invoke({
+    if _agent is None:
+        return {"error": "Agent not initialized"}
+
+    result = await _agent.ainvoke({
         "messages": [
             {
                 "role": "user",
@@ -39,5 +33,10 @@ def agentic_query(request: AgentQueryRequest) -> Any:
             }
         ]
     })
+
+    for msg in result["messages"]:
+        if msg.type == "tool":
+            logger.info(f"Tool Called: {msg.name}")
+            logger.info(f"Tool Input: {msg.content}")
 
     return {"message": result["messages"][-1].content}
