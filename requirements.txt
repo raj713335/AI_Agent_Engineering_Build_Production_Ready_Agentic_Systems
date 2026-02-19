@@ -9,7 +9,7 @@ deepagents~=0.3.12
 tavily-python
 pydantic~=2.12.5
 typing_extensions~=4.15.0
-langcahin-modal
+langchain-modal
 langfuse~=3.14.1
 fastapi~=0.129.0
 uvicorn~=0.40.0
