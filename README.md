@@ -1,5 +1,5 @@
 <h1 align="center">
-  <a href="https://github.com/raj713335/AI_Agent_Engineering_Build_Production_Ready_Agentic_Systems">
+  <a href="https://www.udemy.com/course/ai-agent-engineering-build-production-ready-agentic-systems/">
     AI Agent Engineering: Build Production Ready Agentic Systems
   </a>
 </h1>
@@ -92,7 +92,7 @@ graph TD
     class Langfuse observ;
 ```
 
-## 🎓 About the Course
+## About the Course
 
 This repository supports the Udemy course:
 
@@ -106,53 +106,10 @@ Build modern AI agents using:
 * MCP (Model Context Protocol)
 * RAG Pipelines
 * FastAPI
-* Docker
 * Observability with Langfuse
 
 ---
 
-## 📚 What You'll Learn
-
-* ✅ Understand agentic systems and how they differ from traditional LLM apps
-* ✅ Design modern agent architectures with memory and tool reasoning
-* ✅ Build production AI agents using LangChain and MCP
-* ✅ Implement RAG pipelines for enterprise knowledge
-* ✅ Secure agents with authentication and guardrails
-* ✅ Add observability and evaluation using Langfuse
-* ✅ Deploy scalable systems using FastAPI and Docker
-* ✅ Design multi-agent collaboration workflows
-
----
-
-## 🧠 Course Modules Overview
-
-**8 Sections • 50 Lectures • 9+ Hours**
-
-### 🔹 Evolution of AI
-
-* From rule-based systems to autonomous agents
-
-### 🔹 Agentic AI Fundamentals
-
-* What is Agentic AI?
-* Benefits of Agentic Systems
-* Agentic Design Patterns
-* Highly Autonomous Architectures
-
-### 🔹 Framework Comparisons
-
-* LangChain vs LangGraph vs Deep Agents
-* MCP vs A2A
-
-### 🔹 Production Engineering
-
-* Tool integration
-* Memory systems
-* Observability & monitoring
-* Security and authentication
-* Deployment pipelines
-
----
 
 ## 🛠️ Tech Stack Covered
 
@@ -165,43 +122,6 @@ Build modern AI agents using:
 | Observability     | Langfuse                     |
 | Deployment        | Docker                       |
 | Retrieval         | RAG (Vector Databases)       |
-
----
-
-## 📁 Repository Structure
-
-```
-AI_Agent_Engineering_Build_Production_Ready_Agentic_Systems/
-│
-├── AI_Agent_Client/
-├── AI_Agent_MCP_Server/
-├── Architecture_Diagram/
-├── DeepAgent/
-├── LangChain/
-├── Langfuse/
-├── LangGraph/
-```
-
-Each folder contains:
-
-* Source code
-* Architecture diagrams
-* Implementation examples
-* Exercises and assignments
-* Production patterns
-
----
-
-## 💻 Requirements
-
-Before starting:
-
-* Basic Python knowledge
-* Familiarity with REST APIs and JSON
-* Understanding of LLMs (ChatGPT experience is enough)
-* Python 3.11+
-* VS Code / PyCharm
-* Internet connection
 
 ---
 
@@ -272,22 +192,5 @@ http://127.0.0.1:8000/api/docs
 [https://github.com/raj713335/AI_Agent_Engineering_Build_Production_Ready_Agentic_Systems](https://github.com/raj713335/AI_Agent_Engineering_Build_Production_Ready_Agentic_Systems)
 
 
-
-## ⭐ Support the Project
-
-If you find this repository helpful:
-
-* ⭐ Star the repo
-* 🍴 Fork it
-* 📢 Share with others
-* 🧠 Build your own agentic systems
-
----
-
-## 🚀 Ready to Move Beyond Chatbots?
-
-Start building **real-world AI agents** that reason, plan, collaborate, and operate in production.
-
----
 
 ### Thank You. 🙌
