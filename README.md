@@ -5,7 +5,7 @@
 </h1>
 
 <p align="center">
-  🚀 Production-Grade Agentic Systems with LangChain, MCP, RAG & FastAPI
+  Production-Grade Agentic Systems with LangChain, MCP, RAG & FastAPI
 </p>
 
 <p align="center">
@@ -125,7 +125,7 @@ Build modern AI agents using:
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1️⃣ Clone the Repository
 
@@ -193,4 +193,4 @@ http://127.0.0.1:8000/api/docs
 
 
 
-### Thank You. 🙌
+### Thank You.
