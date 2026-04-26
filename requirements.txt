@@ -22,3 +22,4 @@ a2a-sdk==1.0.2
 geopy==2.4.1
 httpx==0.28.1
 click==8.3.1
+gradio==6.13.0

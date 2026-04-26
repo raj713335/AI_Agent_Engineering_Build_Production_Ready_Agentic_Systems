@@ -53,6 +53,7 @@ Before running the application locally, ensure you have the following installed:
 Run the airbnb agent server:
 
 ```bash
+pip install google-adk[extensions]
 cd A2A/airbnb_agent
 uv run .
 ```

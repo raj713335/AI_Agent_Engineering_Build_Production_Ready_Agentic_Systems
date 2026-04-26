@@ -1,228 +1,103 @@
+"""Weather A2A AgentExecutor — bridges A2A protocol to the ADK Runner."""
+from __future__ import annotations
+
 import logging
 
-from typing import TYPE_CHECKING
-
-from a2a.server.agent_execution import AgentExecutor
-from a2a.server.agent_execution.context import RequestContext
+from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.events.event_queue import EventQueue
 from a2a.server.tasks import TaskUpdater
-from a2a.types import (
-    AgentCard,
-    Part,
-    TaskState,
-    UnsupportedOperationError,
-)
-
+from a2a.types import AgentCard, Part, Task, TaskState, TaskStatus
 from google.adk import Runner
-from google.genai import types
-
-
-if TYPE_CHECKING:
-    from google.adk.sessions.session import Session
+from google.genai import types as genai_types
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
-# Constants
-DEFAULT_USER_ID = 'self'
+
+def _text_part(text: str) -> Part:
+    p = Part()
+    p.text = text
+    return p
+
+
+def _a2a_part_to_genai(part: Part) -> genai_types.Part:
+    which = part.WhichOneof("content")
+    if which == "text":
+        return genai_types.Part(text=part.text)
+    raise ValueError(f"Unsupported a2a part: {which!r}")
+
+
+def _genai_part_to_a2a(part: genai_types.Part) -> Part:
+    out = Part()
+    if part.text:
+        out.text = part.text
+    return out
 
 
 class WeatherExecutor(AgentExecutor):
-    """An AgentExecutor that runs an ADK-based Agent for weather."""
+    """Wraps an ADK Runner and exposes it as an A2A AgentExecutor."""
 
-    def __init__(self, runner: Runner, card: AgentCard):
+    def __init__(self, runner: Runner, card: AgentCard) -> None:
         self.runner = runner
         self._card = card
-        # Track active sessions for potential cancellation
-        self._active_sessions: set[str] = set()
 
-    async def _process_request(
-        self,
-        new_message: types.Content,
-        session_id: str,
-        task_updater: TaskUpdater,
-    ) -> None:
-        session_obj = await self._upsert_session(session_id)
-        # Update session_id with the ID from the resolved session object.
-        # (it may be the same as the one passed in if it already exists)
-        session_id = session_obj.id
+    async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
+        if context.message is None or not context.message.parts:
+            raise ValueError("No message in request context")
 
-        # Track this session as active
-        self._active_sessions.add(session_id)
+        # Publish initial Task if needed
+        if context.current_task is None:
+            task = Task()
+            task.id = context.task_id
+            task.context_id = context.context_id
+            status = TaskStatus()
+            status.state = TaskState.TASK_STATE_SUBMITTED
+            task.status.CopyFrom(status)
+            await event_queue.enqueue_event(task)
 
-        try:
-            async for event in self.runner.run_async(
-                session_id=session_id,
-                user_id=DEFAULT_USER_ID,
-                new_message=new_message,
-            ):
-                if event.is_final_response():
-                    parts = [
-                        convert_genai_part_to_a2a(part)
-                        for part in event.content.parts
-                        if (
-                                getattr(part, "text", None)
-                                or getattr(part, "file_data", None)
-                                or getattr(part, "inline_data", None)
-                        )
-                    ]
-                    logger.debug('Yielding final response: %s', parts)
-                    await task_updater.add_artifact(parts)
-                    await task_updater.update_status(
-                        TaskState.completed
-                    )
-                    break
-                if not event.get_function_calls():
-                    logger.debug('Yielding update response')
-                    await task_updater.update_status(
-                        TaskState.working,
-                        message=task_updater.new_agent_message(
-                            [
-                                convert_genai_part_to_a2a(part)
-                                for part in event.content.parts
-                                if (
-                                    part.text
-                                    or part.file_data
-                                    or part.inline_data
-                                )
-                            ],
-                        ),
-                    )
-                else:
-                    logger.debug('Skipping event')
-        finally:
-            # Remove from active sessions when done
-            self._active_sessions.discard(session_id)
-
-    async def execute(
-        self,
-        context: RequestContext,
-        event_queue: EventQueue,
-    ):
-        # Run the agent until either complete or the task is suspended.
         updater = TaskUpdater(event_queue, context.task_id, context.context_id)
-        # Immediately notify that the task is submitted.
-        if not context.current_task:
-            await updater.update_status(TaskState.submitted)
-        await updater.update_status(TaskState.working)
-        await self._process_request(
-            types.UserContent(
-                parts=[
-                    convert_a2a_part_to_genai(part)
-                    for part in context.message.parts
-                ],
-            ),
-            context.context_id,
-            updater,
-        )
-        logger.debug('[weather] execute exiting')
+        await updater.start_work()
 
-    async def cancel(self, context: RequestContext, event_queue: EventQueue):
-        """Cancel the execution for the given context.
-
-        Currently, logs the cancellation attempt as the underlying ADK runner
-        doesn't support direct cancellation of ongoing tasks.
-        """
-        session_id = context.context_id
-        if session_id in self._active_sessions:
-            logger.info(
-                f'Cancellation requested for active weather session: {session_id}'
-            )
-            # TODO: Implement proper cancellation when ADK supports it
-            self._active_sessions.discard(session_id)
-        else:
-            logger.debug(
-                f'Cancellation requested for inactive weather session: {session_id}'
-            )
-
-        raise UnsupportedOperationError()
-
-    async def _upsert_session(self, session_id: str) -> 'Session':
-        """Retrieves a session if it exists, otherwise creates a new one.
-
-        Ensures that async session service methods are properly awaited.
-        """
+        # Ensure ADK session exists
         session = await self.runner.session_service.get_session(
-            app_name=self.runner.app_name,
-            user_id=DEFAULT_USER_ID,
-            session_id=session_id,
+            app_name=self.runner.app_name, user_id="user", session_id=context.context_id
         )
         if session is None:
             session = await self.runner.session_service.create_session(
-                app_name=self.runner.app_name,
-                user_id=DEFAULT_USER_ID,
-                session_id=session_id,
+                app_name=self.runner.app_name, user_id="user", session_id=context.context_id
             )
-        return session
 
-
-def convert_a2a_part_to_genai(part: Part) -> types.Part:
-    """Convert a single A2A Part type into a Google Gen AI Part type.
-
-    Args:
-        part: The A2A Part to convert
-
-    Returns:
-        The equivalent Google Gen AI Part
-
-    Raises:
-        ValueError: If the part type is not supported
-    """
-    if getattr(part, "text", None):
-        return types.Part(text=part.text)
-
-    if getattr(part, "file", None):
-        file = part.file
-
-        if getattr(file, "uri", None):
-            return types.Part(
-                file_data=types.FileData(
-                    file_uri=file.uri,
-                    mime_type=file.mime_type,
+        try:
+            async for event in self.runner.run_async(
+                session_id=session.id,
+                user_id="user",
+                new_message=genai_types.UserContent(
+                    parts=[_a2a_part_to_genai(p) for p in context.message.parts],
+                ),
+            ):
+                parts = (
+                    event.content.parts if event.content and event.content.parts else []
                 )
+                converted = [_genai_part_to_a2a(p) for p in parts if p.text]
+
+                if event.is_final_response():
+                    if converted:
+                        await updater.add_artifact(parts=converted, name="weather_result")
+                    await updater.complete()
+                    return
+
+                if not event.get_function_calls() and converted:
+                    await updater.update_status(
+                        TaskState.TASK_STATE_WORKING,
+                        message=updater.new_agent_message(converted),
+                    )
+        except Exception as exc:
+            logger.exception("Weather agent failed: %s", exc)
+            await updater.failed(
+                message=updater.new_agent_message([_text_part(f"Error: {exc}")])
             )
+            raise
 
-        if getattr(file, "bytes", None):
-            return types.Part(
-                inline_data=types.Blob(
-                    data=file.bytes,
-                    mime_type=file.mime_type,
-                )
-            )
-
-    raise ValueError(f"Unsupported part: {part}")
-
-
-def convert_genai_part_to_a2a(part: types.Part) -> Part:
-    """Convert a single Google Gen AI Part type into an A2A Part type.
-
-    Args:
-        part: The Google Gen AI Part to convert
-
-    Returns:
-        The equivalent A2A Part
-
-    Raises:
-        ValueError: If the part type is not supported
-    """
-    if getattr(part, "text", None):
-        return Part(text=part.text)
-
-    if getattr(part, "file_data", None):
-        return Part(
-            file={
-                "uri": part.file_data.file_uri,
-                "mime_type": part.file_data.mime_type,
-            }
-        )
-
-    if getattr(part, "inline_data", None):
-        return Part(
-            file={
-                "bytes": part.inline_data.data,
-                "mime_type": part.inline_data.mime_type,
-            }
-        )
-
-    raise ValueError(f"Unsupported part type: {part}")
+    async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
+        updater = TaskUpdater(event_queue, context.task_id, context.context_id)
+        await updater.cancel()

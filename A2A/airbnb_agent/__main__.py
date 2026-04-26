@@ -1,245 +1,166 @@
-# pylint: disable=logging-fstring-interpolation
+"""
+Airbnb Agent Server — FastAPI + A2A protocol.
 
-import asyncio
+Architecture: A2A Server ← Airbnb Agent ← MCP Client A → MCP Server A (stdio)
+
+Endpoints:
+    POST /ask       → Simple REST (ask the agent a question)
+    GET  /health    → Health check
+    POST /a2a       → A2A JSON-RPC (multi-agent communication)
+    GET  /.well-known/agent-card.json → A2A agent discovery
+"""
+
+import logging
 import os
 import sys
+import uuid
 
-from contextlib import asynccontextmanager
-from typing import Any
-
-import click
 import uvicorn
-
-from a2a.server.apps import A2AStarletteApplication
-from a2a.server.request_handlers import DefaultRequestHandler
-from a2a.server.tasks import InMemoryTaskStore
-from a2a.types import (
-    AgentCapabilities,
-    AgentCard,
-    AgentSkill,
-)
-from agent_executor import (
-    AirbnbAgentExecutor,
-)
-from airbnb_agent import (
-    AirbnbAgent,
-)
 from dotenv import load_dotenv
-from langchain_mcp_adapters.client import MultiServerMCPClient
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
 
+# A2A SDK
+from a2a.server.request_handlers import DefaultRequestHandlerV2
+from a2a.server.routes import create_agent_card_routes, create_jsonrpc_routes
+from a2a.server.tasks import InMemoryTaskStore
+from a2a.types import AgentCapabilities, AgentCard, AgentInterface, AgentSkill
+from a2a.utils import TransportProtocol
+
+# Google ADK Runner
+from google.adk.artifacts import InMemoryArtifactService
+from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
+from google.adk.runners import Runner
+from google.adk.sessions import InMemorySessionService
+from google.genai import types as genai_types
+
+# Local
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from airbnb_agent.airbnb_agent import create_airbnb_agent, SUPPORTED_CONTENT_TYPES  # noqa: E402
+from airbnb_agent.agent_executor import AirbnbAgentExecutor  # noqa: E402
 
 load_dotenv(override=True)
+logging.basicConfig(level=logging.INFO)
 
-SERVER_CONFIGS = {
-    'bnb': {
-        'command': 'npx',
-        'args': ['-y', '@openbnb/mcp-server-airbnb', '--ignore-robots-txt'],
-        'transport': 'stdio',
-    },
-}
-
-app_context: dict[str, Any] = {}
+HOST = "0.0.0.0"
+PORT = 10002
 
 
-DEFAULT_HOST = '0.0.0.0'
-DEFAULT_PORT = 10002
-DEFAULT_LOG_LEVEL = 'info'
+# ── Request / Response models ─────────────────────────────────────────────
+
+class AskRequest(BaseModel):
+    query: str = Field(..., example="Find a room in LA, CA, April 15-18 2025, 2 adults")
+    session_id: str | None = Field(default=None)
+
+class AskResponse(BaseModel):
+    answer: str
+    session_id: str
 
 
-@asynccontextmanager
-async def app_lifespan(context: dict[str, Any]):
-    """Manages the lifecycle of shared resources like the MCP client and tools."""
-    print('Lifespan: Initializing MCP client and tools...')
+# ── Agent Card ────────────────────────────────────────────────────────────
 
-    # This variable will hold the MultiServerMCPClient instance
-    mcp_client_instance: MultiServerMCPClient | None = None
+def build_agent_card() -> AgentCard:
+    skill = AgentSkill()
+    skill.id = "airbnb_search"
+    skill.name = "Search airbnb accommodation"
+    skill.description = "Helps with accommodation search using airbnb"
+    skill.tags.extend(["airbnb", "accommodation"])
+    skill.examples.extend(["Find a room in LA, CA, April 15-18 2025, 2 adults"])
 
-    try:
-        # Following Option 1 from the error message for MultiServerMCPClient initialization:
-        # 1. client = MultiServerMCPClient(...)
-        mcp_client_instance = MultiServerMCPClient(SERVER_CONFIGS)
-        mcp_tools = await mcp_client_instance.get_tools()
-        context['mcp_tools'] = mcp_tools
+    caps = AgentCapabilities()
+    caps.streaming = True
 
-        tool_count = len(mcp_tools) if mcp_tools else 0
-        print(
-            f'Lifespan: MCP Tools preloaded successfully ({tool_count} tools found).'
-        )
-        yield  # Application runs here
-    except Exception as e:
-        print(f'Lifespan: Error during initialization: {e}', file=sys.stderr)
-        # If an exception occurs, mcp_client_instance might exist and need cleanup.
-        # The finally block below will handle this.
-        raise
-    finally:
-        print('Lifespan: Shutting down MCP client...')
-        if (
-            mcp_client_instance
-        ):  # Check if the MultiServerMCPClient instance was created
-            # The original code called __aexit__ on the MultiServerMCPClient instance
-            # (which was mcp_client_manager). We assume this is still the correct cleanup method.
-            if hasattr(mcp_client_instance, '__aexit__'):
-                try:
-                    print(
-                        f'Lifespan: Calling __aexit__ on {type(mcp_client_instance).__name__} instance...'
-                    )
-                    await mcp_client_instance.__aexit__(None, None, None)
-                    print(
-                        'Lifespan: MCP Client resources released via __aexit__.'
-                    )
-                except Exception as e:
-                    print(
-                        f'Lifespan: Error during MCP client __aexit__: {e}',
-                        file=sys.stderr,
-                    )
-            else:
-                # This would be unexpected if only the context manager usage changed.
-                # Log an error as this could lead to resource leaks.
-                print(
-                    f'Lifespan: CRITICAL - {type(mcp_client_instance).__name__} instance does not have __aexit__ method for cleanup. Resource leak possible.',
-                    file=sys.stderr,
-                )
-        else:
-            # This case means MultiServerMCPClient() constructor likely failed or was not reached.
-            print(
-                'Lifespan: MCP Client instance was not created, no shutdown attempt via __aexit__.'
-            )
+    iface = AgentInterface()
+    iface.url = os.environ.get("APP_URL", f"http://{HOST}:{PORT}")
+    iface.protocol_binding = TransportProtocol.JSONRPC.value
 
-        # Clear the application context as in the original code.
-        print('Lifespan: Clearing application context.')
-        context.clear()
+    card = AgentCard()
+    card.name = "Airbnb Agent"
+    card.description = "Helps with searching Airbnb accommodation"
+    card.version = "1.0.0"
+    card.default_input_modes.extend(SUPPORTED_CONTENT_TYPES)
+    card.default_output_modes.extend(SUPPORTED_CONTENT_TYPES)
+    card.capabilities.CopyFrom(caps)
+    card.skills.append(skill)
+    card.supported_interfaces.append(iface)
+    return card
 
 
-def main(
-    host: str = DEFAULT_HOST,
-    port: int = DEFAULT_PORT,
-    log_level: str = DEFAULT_LOG_LEVEL,
-):
-    """Command Line Interface to start the Airbnb Agent server."""
-    # Verify an API key is set.
-    # Not required if using Vertex AI APIs.
-    if os.getenv('GOOGLE_GENAI_USE_VERTEXAI') != 'TRUE' and not os.getenv(
-        'GOOGLE_API_KEY'
-    ):
-        raise ValueError(
-            'GOOGLE_API_KEY environment variable not set and '
-            'GOOGLE_GENAI_USE_VERTEXAI is not TRUE.'
-        )
+# ── FastAPI Application ───────────────────────────────────────────────────
 
-    async def run_server_async():
-        async with app_lifespan(app_context):
-            if not app_context.get('mcp_tools'):
-                print(
-                    'Warning: MCP tools were not loaded. Agent may not function correctly.',
-                    file=sys.stderr,
-                )
-                # Depending on requirements, you could sys.exit(1) here
-
-            # Initialize AirbnbAgentExecutor with preloaded tools
-            airbnb_agent_executor = AirbnbAgentExecutor(
-                mcp_tools=app_context.get('mcp_tools', [])
-            )
-
-            request_handler = DefaultRequestHandler(
-                agent_executor=airbnb_agent_executor,
-                task_store=InMemoryTaskStore(),
-            )
-
-            # Create the A2AServer instance
-            a2a_server = A2AStarletteApplication(
-                agent_card=get_agent_card(host, port),
-                http_handler=request_handler,
-            )
-
-            # Get the ASGI app from the A2AServer instance
-            asgi_app = a2a_server.build()
-
-            config = uvicorn.Config(
-                app=asgi_app,
-                host=host,
-                port=port,
-                log_level=log_level.lower(),
-                lifespan='auto',
-            )
-
-            uvicorn_server = uvicorn.Server(config)
-
-            print(
-                f'Starting Uvicorn server at http://{host}:{port} with log-level {log_level}...'
-            )
-            try:
-                await uvicorn_server.serve()
-            except KeyboardInterrupt:
-                print('Server shutdown requested (KeyboardInterrupt).')
-            finally:
-                print('Uvicorn server has stopped.')
-                # The app_lifespan's finally block handles mcp_client shutdown
-
-    try:
-        asyncio.run(run_server_async())
-    except RuntimeError as e:
-        if 'cannot be called from a running event loop' in str(e):
-            print(
-                'Critical Error: Attempted to nest asyncio.run(). This should have been prevented.',
-                file=sys.stderr,
-            )
-        else:
-            print(f'RuntimeError in main: {e}', file=sys.stderr)
-        sys.exit(1)
-    except Exception as e:
-        print(f'An unexpected error occurred in main: {e}', file=sys.stderr)
-        sys.exit(1)
-
-
-def get_agent_card(host: str, port: int):
-    """Returns the Agent Card for the Currency Agent."""
-    capabilities = AgentCapabilities(streaming=True, push_notifications=True)
-    skill = AgentSkill(
-        id='airbnb_search',
-        name='Search airbnb accommodation',
-        description='Helps with accommodation search using airbnb',
-        tags=['airbnb accommodation'],
-        examples=[
-            'Please find a room in LA, CA, April 15, 2025, checkout date is april 18, 2 adults'
-        ],
-    )
-    app_url = os.environ.get('APP_URL', f'http://{host}:{port}')
-
-    return AgentCard(
-        name='Airbnb Agent',
-        description='Helps with searching accommodation',
-        url=app_url,
-        version='1.0.0',
-        default_input_modes=AirbnbAgent.SUPPORTED_CONTENT_TYPES,
-        default_output_modes=AirbnbAgent.SUPPORTED_CONTENT_TYPES,
-        capabilities=capabilities,
-        skills=[skill],
+def create_app() -> FastAPI:
+    agent_card = build_agent_card()
+    agent = create_airbnb_agent()
+    runner = Runner(
+        app_name=agent_card.name,
+        agent=agent,
+        artifact_service=InMemoryArtifactService(),
+        session_service=InMemorySessionService(),
+        memory_service=InMemoryMemoryService(),
     )
 
+    app = FastAPI(
+        title="🏠 Airbnb Agent API",
+        version="1.0.0",
+        description="AI Airbnb search agent with dummy data. POST to `/ask` to try it.",
+    )
 
-@click.command()
-@click.option(
-    '--host',
-    'host',
-    default=DEFAULT_HOST,
-    help='Hostname to bind the server to.',
-)
-@click.option(
-    '--port',
-    'port',
-    default=DEFAULT_PORT,
-    type=int,
-    help='Port to bind the server to.',
-)
-@click.option(
-    '--log-level',
-    'log_level',
-    default=DEFAULT_LOG_LEVEL,
-    help='Uvicorn log level.',
-)
-def cli(host: str, port: int, log_level: str):
-    main(host, port, log_level)
+    @app.post("/ask", response_model=AskResponse, tags=["Accommodation"])
+    async def ask(body: AskRequest) -> AskResponse:
+        session_id = body.session_id or uuid.uuid4().hex
+        session = await runner.session_service.get_session(
+            app_name=runner.app_name, user_id="user", session_id=session_id
+        )
+        if session is None:
+            session = await runner.session_service.create_session(
+                app_name=runner.app_name, user_id="user", session_id=session_id
+            )
+
+        final_text = ""
+        try:
+            async for event in runner.run_async(
+                session_id=session.id,
+                user_id="user",
+                new_message=genai_types.UserContent(
+                    parts=[genai_types.Part(text=body.query)]
+                ),
+            ):
+                if event.is_final_response():
+                    if event.content and event.content.parts:
+                        final_text = "\n".join(
+                            p.text for p in event.content.parts if p.text
+                        )
+                    break
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=str(exc))
+
+        return AskResponse(answer=final_text or "(no response)", session_id=session.id)
+
+    @app.get("/health", tags=["System"])
+    async def health():
+        return {"status": "ok"}
+
+    # ── A2A routes ────────────────────────────────────────────────────
+    handler = DefaultRequestHandlerV2(
+        agent_executor=AirbnbAgentExecutor(runner, agent_card),
+        task_store=InMemoryTaskStore(),
+        agent_card=agent_card,
+    )
+    for route in create_jsonrpc_routes(handler, rpc_url="/a2a", enable_v0_3_compat=True):
+        app.routes.append(route)
+    for route in create_agent_card_routes(agent_card=agent_card):
+        app.routes.append(route)
+
+    return app
 
 
-if __name__ == '__main__':
-    main()
+# ── Entry point ───────────────────────────────────────────────────────────
+
+if __name__ == "__main__":
+    if not os.getenv("OPENAI_API_KEY"):
+        raise SystemExit("ERROR: Set OPENAI_API_KEY first.")
+
+    print(f"🏠  Airbnb Agent on http://localhost:{PORT}")
+    print(f"📖  Docs at http://localhost:{PORT}/docs")
+    app = create_app()
+    uvicorn.run(app, host=HOST, port=PORT)
