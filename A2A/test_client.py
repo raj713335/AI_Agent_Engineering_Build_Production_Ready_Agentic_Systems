@@ -30,7 +30,7 @@ async def main() -> None:
             print(chunk)
 
         streaming_config = ClientConfig(streaming=True)
-        streaming_client = await  create_client(agent=public_card, client_config=streaming_config)
+        streaming_client = await create_client(agent=public_card, client_config=streaming_config)
 
         streaming_response = streaming_client.send_message(request)
 

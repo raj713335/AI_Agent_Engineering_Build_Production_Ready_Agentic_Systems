@@ -12,11 +12,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class HelloWorldAgent:
     """Hello World Agent"""
 
     def __init__(self):
-
         model = init_chat_model("openai:gpt-4.1-mini")
 
         self.agent = create_agent(
@@ -25,7 +25,6 @@ class HelloWorldAgent:
                 "You are a helpful research assistant."
             ),
         )
-
 
     async def invoke(self, user_input: str) -> str:
         """Invoke the Hello World agent to generate a response."""
