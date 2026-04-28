@@ -5,13 +5,42 @@ from a2a.server.events import EventQueue
 
 from a2a.types.a2a_pb2 import TaskArtifactUpdateEvent, TaskState, TaskStatus, TaskStatusUpdateEvent
 
+from langchain.agents import create_agent
+from langchain.chat_models import init_chat_model
+
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 class HelloWorldAgent:
     """Hello World Agent"""
 
-    async def invoke(self) -> str:
+    def __init__(self):
+
+        model = init_chat_model("openai:gpt-4.1-mini")
+
+        self.agent = create_agent(
+            model=model,
+            system_prompt=(
+                "You are a helpful research assistant."
+            ),
+        )
+
+
+    async def invoke(self, user_input: str) -> str:
         """Invoke the Hello World agent to generate a response."""
-        return 'Hello, World'
+        response = await self.agent.ainvoke({
+            "messages": [
+                {
+                    "role": "user",
+                    "content": user_input
+                }
+            ]
+        })
+
+        return response["messages"][-1].content
 
 
 class HelloWorldAgentExecutor(AgentExecutor):
@@ -40,7 +69,7 @@ class HelloWorldAgentExecutor(AgentExecutor):
             )
         )
 
-        result = await self.agent.invoke()
+        result = await self.agent.invoke(context.message.parts[0].text)
 
         await event_queue.enqueue_event(
             TaskArtifactUpdateEvent(
