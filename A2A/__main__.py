@@ -21,7 +21,7 @@ if __name__ == '__main__':
     )
 
     public_agent_card = AgentCard(
-        name='Hellow World Agent',
+        name='Hello World Agent',
         description='Just a hello world agent',
         version='0.0.1',
         default_input_modes=['text/plain'],

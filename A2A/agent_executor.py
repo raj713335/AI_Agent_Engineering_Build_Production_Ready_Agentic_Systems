@@ -8,11 +8,9 @@ from a2a.types.a2a_pb2 import TaskArtifactUpdateEvent, TaskState, TaskStatus, Ta
 from langchain.agents import create_agent
 from langchain.chat_models import init_chat_model
 
-
 from dotenv import load_dotenv
 
 load_dotenv()
-
 
 class HelloWorldAgent:
     """Hello World Agent"""
