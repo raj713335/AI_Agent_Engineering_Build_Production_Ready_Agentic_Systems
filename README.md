@@ -104,6 +104,7 @@ Build modern AI agents using:
 * LangGraph
 * Deep Agents
 * MCP (Model Context Protocol)
+* A2A (Agent to Agent Protocol)
 * RAG Pipelines
 * FastAPI
 * Observability with Langfuse
